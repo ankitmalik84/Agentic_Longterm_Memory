@@ -1,7 +1,7 @@
 from typing import Optional, List
 from openai import OpenAI
-from utils.sql_manager import SQLManager
-from utils.utils import Utils
+from src.utils.sql_manager import SQLManager
+from src.utils.utils import Utils
 import json
 
 

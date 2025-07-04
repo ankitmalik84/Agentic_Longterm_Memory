@@ -1,0 +1,11 @@
+# MCP Server Requirements - Minimal dependencies for Notion MCP Server
+# Only includes what's needed for the MCP server to run
+
+# MCP (Model Context Protocol) framework
+mcp>=1.0.0
+
+# Notion API client
+notion-client>=2.0.0
+
+# Core Python dependencies (if needed)
+python-dotenv>=1.0.0 

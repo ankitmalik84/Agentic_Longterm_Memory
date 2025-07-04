@@ -1,17 +1,19 @@
 import os
 import uuid
 import json
+import asyncio
 from dotenv import load_dotenv
 from openai import OpenAI
 from traceback import format_exc
-from utils.sql_manager import SQLManager
-from utils.user_manager import UserManager
-from utils.chat_history_manager import ChatHistoryManager
-from utils.search_manager import SearchManager
-from utils.prepare_system_prompt import prepare_system_prompt_for_agentic_chatbot_v2
-from utils.utils import Utils
-from utils.config import Config
-from utils.vector_db_manager import VectorDBManager
+from src.utils.sql_manager import SQLManager
+from src.utils.user_manager import UserManager
+from src.utils.chat_history_manager import ChatHistoryManager
+from src.utils.search_manager import SearchManager
+from src.utils.prepare_system_prompt import prepare_system_prompt_for_agentic_chatbot_v2
+from src.utils.utils import Utils
+from src.utils.config import Config
+from src.utils.vector_db_manager import VectorDBManager
+from src.utils.mcp_client_manager import MCPClientManager
 
 load_dotenv()
 
@@ -45,8 +47,110 @@ class Chatbot:
 
         self.search_manager = SearchManager(
             self.sql_manager, self.utils, self.client, self.summary_model, self.cfg.max_characters)
-        self.agent_functions = [self.utils.jsonschema(self.user_manager.add_user_info_to_database),
-                                self.utils.jsonschema(self.vector_db_manager.search_vector_db)]
+        
+        # Initialize MCP client manager
+        self.mcp_client_manager = MCPClientManager()
+        
+        # Initialize Notion MCP server (async)
+        self.notion_initialized = self._initialize_notion_sync()
+        
+        # Setup agent functions with MCP tools
+        self.agent_functions = [
+            self.utils.jsonschema(self.user_manager.add_user_info_to_database),
+            self.utils.jsonschema(self.vector_db_manager.search_vector_db)
+        ]
+        
+        # Add Notion tools if initialized successfully
+        if self.notion_initialized:
+            self.agent_functions.extend([
+                {
+                    "name": "search_notion_pages",
+                    "description": "Search for pages in Notion workspace",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "Search query text"},
+                            "page_size": {"type": "integer", "description": "Number of results to return", "default": 10}
+                        },
+                        "required": ["query"]
+                    }
+                },
+                {
+                    "name": "get_notion_page",
+                    "description": "Get detailed content of a specific Notion page",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "page_id": {"type": "string", "description": "Notion page ID"}
+                        },
+                        "required": ["page_id"]
+                    }
+                },
+                {
+                    "name": "create_notion_page",
+                    "description": "Create a new page in Notion. The system will automatically find a suitable parent page, or you can specify a custom parent_id. Pages are typically organized under existing workspace pages.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string", "description": "Page title"},
+                            "content": {"type": "string", "description": "Page content in plain text"},
+                            "parent_id": {"type": "string", "description": "Parent page ID (optional - system will auto-discover if not provided)"}
+                        },
+                        "required": ["title", "content"]
+                    }
+                },
+                {
+                    "name": "get_notion_database",
+                    "description": "Query a Notion database",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "database_id": {"type": "string", "description": "Database ID"},
+                            "filter_property": {"type": "string", "description": "Property to filter by (optional)"},
+                            "filter_value": {"type": "string", "description": "Value to filter by (optional)"}
+                        },
+                        "required": ["database_id"]
+                    }
+                }
+            ])
+
+    def _initialize_notion_sync(self) -> bool:
+        """Synchronous wrapper for async notion initialization"""
+        try:
+            # Check if we already have an event loop running
+            try:
+                # If there's already a loop running, we can't create a new one
+                loop = asyncio.get_running_loop()
+                print("⚠️ Event loop already running, skipping MCP initialization for now")
+                return False
+            except RuntimeError:
+                # No loop running, we can create one
+                pass
+            
+            # Create a new event loop for this initialization
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                # Use the new fallback method
+                result = loop.run_until_complete(
+                    self.mcp_client_manager.initialize_notion_with_fallback()
+                )
+                
+                if result:
+                    print("✅ Notion MCP server initialized successfully")
+                    return True
+                else:
+                    print("⚠️ MCP initialization failed - continuing without MCP")
+                    return False
+                        
+            finally:
+                loop.close()
+                
+        except Exception as e:
+            print(f"⚠️ MCP initialization failed: {e}")
+            print("📝 Continuing without Notion MCP integration...")
+            return False
 
     def execute_function_call(self, function_name: str, function_args: dict) -> tuple[str, str]:
         """
@@ -63,6 +167,13 @@ class Chatbot:
             return self.vector_db_manager.search_vector_db(**function_args)
         elif function_name == "add_user_info_to_database":
             return self.user_manager.add_user_info_to_database(function_args)
+        elif function_name in ["search_notion_pages", "get_notion_page", "create_notion_page", "get_notion_database"]:
+            if self.notion_initialized:
+                return self.mcp_client_manager.call_tool_sync("notion", function_name, function_args)
+            else:
+                return "Function call failed.", "Notion MCP server not initialized"
+        else:
+            return "Function call failed.", f"Unknown function: {function_name}"
 
     def chat(self, user_message: str) -> str:
         """
@@ -181,3 +292,9 @@ class Chatbot:
 
             except Exception as e:
                 return f"Error: {str(e)}\n{format_exc()}"
+
+    def __del__(self):
+        """Cleanup when chatbot is destroyed"""
+        if hasattr(self, 'mcp_client_manager'):
+            # Note: Can't use async in __del__, cleanup will be handled by the exit stack
+            pass

@@ -1,0 +1,41 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy MCP server specific requirements
+COPY docker/requirements-mcp.txt ./requirements-mcp.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements-mcp.txt
+
+# Copy source code
+COPY src/ ./src/
+
+# Set environment variables
+ENV PYTHONPATH=/app
+
+# Production-ready environment variables
+# NOTION_TOKEN - Your Notion integration token (REQUIRED)
+ENV NOTION_TOKEN=""
+
+# NOTION_DEFAULT_PARENT_ID - Default parent page ID for new pages (OPTIONAL)
+# If not set, the server will auto-discover a suitable parent page
+ENV NOTION_DEFAULT_PARENT_ID=""
+
+# MCP server configuration
+ENV MCP_TRANSPORT="http"
+ENV MCP_HOST="0.0.0.0"
+ENV MCP_PORT="8080"
+
+# Expose port for HTTP transport
+EXPOSE 8080
+
+# Command to run the MCP server
+CMD ["python", "-m", "src.notion_mcp_server.server"] 

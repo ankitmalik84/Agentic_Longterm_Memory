@@ -18,6 +18,7 @@ langmem==0.0.16
 ipykernel==6.29.5
 SQLAlchemy
 langchain_community
+aiohttp
 
 # Vector Database (may require C++ compiler on Windows)
 # If installation fails, run: python install.py
@@ -26,3 +27,7 @@ chromadb==0.6.3
 # Alternative vector databases (uncomment if chromadb fails):
 # faiss-cpu==1.9.0
 # weaviate-client==4.9.5
+
+# MCP (Model Context Protocol) dependencies
+mcp>=1.0.0
+notion-client>=2.0.0

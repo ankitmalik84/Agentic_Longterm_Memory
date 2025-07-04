@@ -1,6 +1,6 @@
 import math
 from typing import Optional, Dict, Any, Tuple
-from utils.sql_manager import SQLManager
+from src.utils.sql_manager import SQLManager
 
 
 class UserManager:
