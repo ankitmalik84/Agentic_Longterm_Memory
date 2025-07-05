@@ -3,8 +3,8 @@ import chromadb
 import uuid
 from openai import OpenAI
 from chromadb.utils import embedding_functions
-from src.utils.config import Config
-from src.utils.prepare_system_prompt import prepare_system_prompt_for_rag_chatbot
+from utils.config import Config
+from utils.prepare_system_prompt import prepare_system_prompt_for_rag_chatbot
 
 # Disable ChromaDB telemetry to avoid capture() errors
 os.environ["ANONYMIZED_TELEMETRY"] = "False"

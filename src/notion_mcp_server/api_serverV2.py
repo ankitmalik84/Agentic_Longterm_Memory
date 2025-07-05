@@ -1,6 +1,6 @@
 """
-Notion Server V2 - HTTP API Wrapper
-FastAPI server for AI agent integration
+Fast API Server for Notion API V2
+Direct API implementation with FastAPI endpoints
 """
 
 import os
@@ -16,7 +16,7 @@ from pydantic import BaseModel
 import uvicorn
 
 # Import our Notion server
-from src.notion_mcp_server.serverV2 import ComprehensiveNotionServer
+from .serverV2 import ComprehensiveNotionServer
 
 # Load environment
 load_dotenv()

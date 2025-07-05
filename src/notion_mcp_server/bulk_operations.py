@@ -1,13 +1,13 @@
 """
 Bulk Operations for Notion API
-Batch operations for pages, databases, and content management
+Handle bulk operations efficiently
 """
 
 import os
 from typing import Any, Dict, List, Optional, Union
 from notion_client import Client
 from notion_client.errors import APIResponseError
-from src.notion_mcp_server.notion_utils import NotionUtils
+from .notion_utils import NotionUtils
 
 
 class BulkOperations:

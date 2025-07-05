@@ -1,6 +1,6 @@
 """
 Analytics Operations for Notion API
-Workspace analytics, content analysis, and metrics
+Advanced analytics and insights for Notion workspace
 """
 
 import os
@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union
 from datetime import datetime, timedelta, timezone
 from notion_client import Client
 from notion_client.errors import APIResponseError
-from src.notion_mcp_server.notion_utils import NotionUtils
+from .notion_utils import NotionUtils
 
 
 class AnalyticsOperations:

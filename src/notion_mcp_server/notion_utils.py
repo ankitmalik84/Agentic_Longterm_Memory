@@ -231,6 +231,109 @@ class NotionUtils:
                 print(f"   └── (Has child blocks)")
     
     @staticmethod
+    def split_long_content(content: str, max_length: int = 2000) -> list:
+        """
+        Split long content into chunks respecting the character limit.
+        
+        Args:
+            content (str): The content to split
+            max_length (int): Maximum length per chunk (default: 2000 for Notion)
+            
+        Returns:
+            list: List of content chunks
+        """
+        if len(content) <= max_length:
+            return [content]
+        
+        chunks = []
+        remaining_content = content
+        
+        while remaining_content:
+            if len(remaining_content) <= max_length:
+                # Last chunk
+                chunks.append(remaining_content.strip())
+                break
+            else:
+                # Find the best break point within the limit
+                chunk = remaining_content[:max_length]
+                
+                # Try to break at sentence endings
+                last_sentence = max(
+                    chunk.rfind('. '),
+                    chunk.rfind('! '),
+                    chunk.rfind('? '),
+                    chunk.rfind('\n')
+                )
+                
+                if last_sentence > max_length * 0.7:  # Don't break too early
+                    chunk = remaining_content[:last_sentence + 1]
+                    remaining_content = remaining_content[last_sentence + 1:].strip()
+                else:
+                    # Break at word boundary
+                    last_space = chunk.rfind(' ')
+                    if last_space > max_length * 0.8:
+                        chunk = remaining_content[:last_space]
+                        remaining_content = remaining_content[last_space:].strip()
+                    else:
+                        # Hard break (rare case)
+                        chunk = remaining_content[:max_length]
+                        remaining_content = remaining_content[max_length:]
+                
+                chunks.append(chunk.strip())
+        
+        return [chunk for chunk in chunks if chunk]  # Remove empty chunks
+    
+    @staticmethod
+    def get_suitable_parent_sync(notion_client: Client) -> Optional[str]:
+        """Get a suitable parent page ID (synchronous version)"""
+        try:
+            # Strategy 1: Environment variable
+            env_parent = os.getenv("NOTION_DEFAULT_PARENT_ID")
+            if env_parent:
+                try:
+                    notion_client.pages.retrieve(env_parent)
+                    return env_parent
+                except:
+                    pass
+            
+            # Strategy 2: Search for common parent page names
+            parent_names = ["AI Agent Journey", "Notes", "Projects", "MCP Pages"]
+            
+            for name in parent_names:
+                try:
+                    results = notion_client.search(
+                        query=name,
+                        filter={"property": "object", "value": "page"}
+                    )
+                    
+                    for page in results.get("results", []):
+                        page_title = NotionUtils.extract_title(page)
+                        if name.lower() in page_title.lower():
+                            print(f"✅ Using parent: {page_title}")
+                            return page["id"]
+                except:
+                    continue
+            
+            # Strategy 3: Use any available page as parent
+            results = notion_client.search(
+                query="",
+                filter={"property": "object", "value": "page"},
+                page_size=5
+            )
+            
+            if results.get("results"):
+                first_page = results["results"][0]
+                page_title = NotionUtils.extract_title(first_page)
+                print(f"⚠️ Using first available page as parent: {page_title}")
+                return first_page["id"]
+            
+            return None
+            
+        except Exception as e:
+            print(f"❌ Error finding parent: {e}")
+            return None
+    
+    @staticmethod
     async def get_suitable_parent(notion_client: Client) -> Optional[str]:
         """Get a suitable parent page ID"""
         try:

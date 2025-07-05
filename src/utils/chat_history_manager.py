@@ -1,8 +1,8 @@
 from typing import Optional, List
 from openai import OpenAI
-from src.utils.sql_manager import SQLManager
-from src.utils.utils import Utils
 import json
+from utils.sql_manager import SQLManager
+from utils.utils import Utils
 
 
 class ChatHistoryManager:
