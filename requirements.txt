@@ -31,3 +31,4 @@ chromadb==0.6.3
 # MCP (Model Context Protocol) dependencies
 mcp>=1.0.0
 notion-client>=2.0.0
+openai-agents

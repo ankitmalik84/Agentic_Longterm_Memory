@@ -11,10 +11,11 @@ from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from notion_client import Client
 from notion_client.errors import APIResponseError
-from src.notion_mcp_server.notion_utils import NotionUtils
-from src.notion_mcp_server.core_operations import CoreOperations
-from src.notion_mcp_server.analytics_operations import AnalyticsOperations
-from src.notion_mcp_server.bulk_operations import BulkOperations
+from .notion_utils import NotionUtils
+from .core_operations import CoreOperations
+from .analytics_operations import AnalyticsOperations
+from .bulk_operations import BulkOperations
+from .update_operations import UpdateOperations
 
 # Load environment variables first
 load_dotenv()
@@ -37,6 +38,7 @@ class ComprehensiveNotionServer:
         self.core_ops = CoreOperations(self.notion)
         self.analytics_ops = AnalyticsOperations(self.notion)
         self.bulk_ops = BulkOperations(self.notion)
+        self.update_ops = UpdateOperations(self.notion)
         
     async def run_enhanced_conversation(self):
         """Run interactive conversation with comprehensive capabilities"""
@@ -107,8 +109,8 @@ class ComprehensiveNotionServer:
                 print("• create database - Create a new database")
         
         # UPDATE OPERATIONS
-        # elif 'update' in user_input.lower():
-        #     await self.update_content_interactive()
+        elif 'update' in user_input.lower():
+            await self.update_ops.update_content_interactive()
         
         # LIST OPERATIONS
         elif 'list' in user_input.lower():
@@ -122,14 +124,6 @@ class ComprehensiveNotionServer:
         elif any(keyword in user_input.lower() for keyword in ['bulk', 'multiple', 'batch']):
             await self.bulk_ops.handle_bulk_operations(user_input)
         
-        # MIGRATION & IMPORT
-        # elif any(keyword in user_input.lower() for keyword in ['migrate', 'import', 'export']):
-        #     await self.handle_migration_requests(user_input)
-        
-        # # WORKSPACE MANAGEMENT
-        # elif any(keyword in user_input.lower() for keyword in ['workspace', 'template', 'organize']):
-        #     await self.handle_workspace_management(user_input)
-        
         else:
             print("💡 I can help you with:")
             print("• Search: 'search [term]'")
@@ -139,7 +133,6 @@ class ComprehensiveNotionServer:
             print("• List: 'list pages'")
             print("• Analytics: 'analyze workspace'")
             print("• Bulk operations: 'bulk pages'")
-            print("• Migration: 'import content'")
     
     def show_comprehensive_help(self):
         """Show comprehensive help information"""
@@ -151,6 +144,7 @@ class ComprehensiveNotionServer:
         print("  • search [term] - Search pages and databases")
         print("  • read page [name/id] - Read page content")
         print("  • create page - Create new pages")
+        print("  • update content - Add content to existing pages")
         print("  • list pages - List all pages")
         print("  • list databases - List all databases")
         
@@ -168,6 +162,7 @@ class ComprehensiveNotionServer:
         print("  • 'search jaat'")
         print("  • 'read page jaat'")
         print("  • 'create page'")
+        print("  • 'update content'")
         print("  • 'analyze workspace'")
         print("  • 'bulk pages'")
         print("  • 'list pages'")

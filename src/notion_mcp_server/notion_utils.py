@@ -4,12 +4,74 @@ Helper functions for parsing and formatting Notion API responses
 """
 
 import os
+import re
 from typing import Any, Dict, List, Optional, Union
 from notion_client import Client
 
 
 class NotionUtils:
     """Utility class for Notion API operations"""
+    
+    @staticmethod
+    def is_valid_uuid(uuid_string: str) -> bool:
+        """Check if a string is a valid UUID format"""
+        if not uuid_string:
+            return False
+        
+        # Check if it's a valid UUID pattern (with or without hyphens)
+        # Notion page IDs are typically 32 characters without hyphens
+        # or 36 characters with hyphens in format 8-4-4-4-12
+        
+        # Remove hyphens for consistency
+        clean_uuid = uuid_string.replace('-', '')
+        
+        # Check if it's 32 hexadecimal characters
+        if len(clean_uuid) == 32 and re.match(r'^[0-9a-fA-F]{32}$', clean_uuid):
+            return True
+        
+        return False
+    
+    @staticmethod
+    def extract_block_text(block: dict) -> str:
+        """Extract text content from a block"""
+        block_type = block.get("type", "")
+        
+        if block_type == "paragraph":
+            return NotionUtils.extract_rich_text(block["paragraph"]["rich_text"])
+        elif block_type == "heading_1":
+            return NotionUtils.extract_rich_text(block["heading_1"]["rich_text"])
+        elif block_type == "heading_2":
+            return NotionUtils.extract_rich_text(block["heading_2"]["rich_text"])
+        elif block_type == "heading_3":
+            return NotionUtils.extract_rich_text(block["heading_3"]["rich_text"])
+        elif block_type == "bulleted_list_item":
+            return NotionUtils.extract_rich_text(block["bulleted_list_item"]["rich_text"])
+        elif block_type == "numbered_list_item":
+            return NotionUtils.extract_rich_text(block["numbered_list_item"]["rich_text"])
+        elif block_type == "to_do":
+            return NotionUtils.extract_rich_text(block["to_do"]["rich_text"])
+        elif block_type == "quote":
+            return NotionUtils.extract_rich_text(block["quote"]["rich_text"])
+        elif block_type == "callout":
+            return NotionUtils.extract_rich_text(block["callout"]["rich_text"])
+        elif block_type == "code":
+            return NotionUtils.extract_rich_text(block["code"]["rich_text"])
+        elif block_type == "divider":
+            return "---"
+        elif block_type == "image":
+            image_info = block["image"]
+            if image_info.get("type") == "external":
+                return f"Image: {image_info['external']['url']}"
+            elif image_info.get("type") == "file":
+                return f"Image: {image_info['file']['url']}"
+            else:
+                return "Image (embedded)"
+        elif block_type == "embed":
+            return f"Embed: {block['embed']['url']}"
+        elif block_type == "bookmark":
+            return f"Bookmark: {block['bookmark']['url']}"
+        else:
+            return f"[{block_type.upper()}] content"
     
     @staticmethod
     def extract_page_identifier(user_input: str) -> Optional[str]:
