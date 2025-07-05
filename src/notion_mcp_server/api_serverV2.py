@@ -1,21 +1,17 @@
-#!/usr/bin/env python3
 """
 Notion Server V2 - HTTP API Wrapper
 FastAPI server for AI agent integration
 """
 
 import os
-import asyncio
-import json
 import logging
-from typing import Dict, Any, List, Optional
+from typing import  Any, Optional
 from datetime import datetime
 from dotenv import load_dotenv
 
 # FastAPI imports
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
 
