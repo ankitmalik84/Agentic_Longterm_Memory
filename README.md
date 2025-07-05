@@ -280,7 +280,7 @@ data/                          # Database storage
 **Agentic_Chatbot_v2 Schema**
 ![Schema 4](images/chatbot_agentic_v2.png)
 
-**Agentic_Chatbot_v3 Schema** (Enhanced)
+**Agentic_Chatbot_v3 Schema** (Old Version)
 ![Schema 5](images/agentic_chatbot_v3.png)
 
 **Longterm Memory with Graph DB and Vector DB using LangGraph**
@@ -290,7 +290,7 @@ data/                          # Database storage
 ![Schema 7](images/langgraph_course_theory.png)
 ![Schema 8](images/langgraph_2_updated.png)
 
-**Project Structure**
+**Old Project Structure**
 ![Schema 9](images/src_structure.png)
 
 ## 🚀 **Getting Started**
