@@ -10,9 +10,11 @@ Feel free to ⭐️ the repo if it helps you understand long-term memory for age
 
 - **15+ Notion Functions**: Search, read, create, update, and analyze your Notion workspace
 - **Smart Content Management**: Add paragraphs, headings, bullets, todos with intelligent formatting
+- **Advanced Content Types**: Bookmarks and internal page links with URL validation
 - **Workspace Analytics**: Get insights about your Notion usage patterns
-- **Bulk Operations**: Handle multiple pages and operations efficiently
+- **Bulk Operations**: Handle multiple pages and operations efficiently with smart pagination
 - **Function Chaining**: Complex multi-step workflows handled automatically
+- **Production-Ready MCP Server**: [**Complete Notion MCP Server V2.1**](src/notion_mcp_server/README.md) with bulletproof validation and comprehensive testing
 
 ### **🎯 MCP (Model Context Protocol) Implementation**
 
@@ -28,6 +30,7 @@ Feel free to ⭐️ the repo if it helps you understand long-term memory for age
 - **[🤖 Complete System Explanation](SYSTEM_EXPLANATION.md)** - _Detailed walkthrough of the entire chatbot system_
 - **[🔧 How MCP Tools Work](HOW_MCP_TOOLS_WORK.md)** - _Deep dive into MCP implementation and tool mechanics_
 - **[🚀 Notion Integration Guide](NOTION_INTEGRATION_README.md)** - _Complete Notion ServerV2 integration documentation_
+- **[🔗 Notion MCP Server](src/notion_mcp_server/README.md)** - _**Complete Notion MCP Server V2.1** - Production-ready server with bulletproof validation_
 
 ### **🔍 Implementation Guides**
 
@@ -47,8 +50,9 @@ Feel free to ⭐️ the repo if it helps you understand long-term memory for age
 3. How to structure memory into **semantic**, **episodic**, and **procedural** components
 4. **Complete Notion workspace integration** with natural language processing
 5. **MCP (Model Context Protocol)** implementation for scalable tool integration
-6. **Advanced function chaining** for complex multi-step workflows
-7. **Production-ready deployment** strategies and configurations
+6. **Production-ready MCP server development** - see our [**Notion MCP Server V2.1**](src/notion_mcp_server/README.md)
+7. **Advanced function chaining** for complex multi-step workflows
+8. **Production-ready deployment** strategies and configurations
 
 ## 💾 **How to Run the Project**
 
@@ -144,8 +148,10 @@ python test_notion_mcp.py
 
 - **Search & Discovery**: Full-text search across pages and databases
 - **Content Management**: Create, read, update pages with rich formatting
+- **Advanced Content Types**: Bookmarks and internal page links with validation
 - **Analytics**: Workspace insights and usage patterns
 - **Bulk Operations**: Handle multiple operations efficiently
+- **Production MCP Server**: [**Complete V2.1 Server**](src/notion_mcp_server/README.md) with bulletproof validation and 48KB test suite
 
 ### **🎯 Function Chaining**
 
@@ -203,7 +209,9 @@ src/
 │   ├── update_operations.py   # Content updates
 │   ├── notion_utils.py        # Utility functions
 │   ├── api_serverV2.py        # HTTP API server
-│   └── serverV2.py            # MCP server implementation
+│   ├── serverV2.py            # MCP server implementation
+│   ├── test_server.py         # 🆕 48KB comprehensive test suite
+│   └── README.md              # 🆕 Complete MCP Server V2.1 documentation
 └── utils/
     ├── basic_chatbot_v1.py    # Basic chatbot implementation
     ├── chatbot_agentic_v2.py  # Agentic chatbot v2
@@ -296,10 +304,11 @@ data/                          # Database storage
 ## 🚀 **Getting Started**
 
 1. **Read the Documentation**: Start with [🤖 Complete System Explanation](SYSTEM_EXPLANATION.md)
-2. **Set up Environment**: Follow the installation steps above
-3. **Configure Notion**: Set up your Notion integration token
-4. **Run Tests**: Verify everything works with the test files
-5. **Start Chatting**: Use the enhanced chatbot with natural language
+2. **Explore the MCP Server**: Check out our [**Notion MCP Server V2.1**](src/notion_mcp_server/README.md) - production-ready with comprehensive testing
+3. **Set up Environment**: Follow the installation steps above
+4. **Configure Notion**: Set up your Notion integration token
+5. **Run Tests**: Verify everything works with the test files
+6. **Start Chatting**: Use the enhanced chatbot with natural language
 
 ## 🤝 **Contributing**
 
