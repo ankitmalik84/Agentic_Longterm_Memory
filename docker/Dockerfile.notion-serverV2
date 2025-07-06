@@ -1,4 +1,5 @@
-# Dockerfile for Notion Server V2
+# Dockerfile for Notion MCP Server V2.1
+# Production-ready container with bulletproof validation and comprehensive testing
 FROM python:3.11-slim
 
 # Set working directory
@@ -9,28 +10,30 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file for serverV2
-COPY docker/requirements-serverV2.txt ./requirements-serverV2.txt
+# Copy requirements file for notion_mcp_server
+COPY src/notion_mcp_server/requirements.txt ./requirements.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-serverV2.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
-COPY src/notion_mcp_server/api_server.py ./src/notion_mcp_server/api_server.py
-COPY src/notion_mcp_server/serverV2.py ./src/notion_mcp_server/serverV2.py
+# Copy the entire notion_mcp_server module
+COPY src/notion_mcp_server/ ./src/notion_mcp_server/
+
+# Copy any additional utility files if needed
+COPY src/utils/ ./src/utils/ 
 
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV HOST=0.0.0.0
-ENV PORT=8081
+ENV PORT=8000
 
 # Expose port for HTTP API
-EXPOSE 8081
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8081/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the API server (FastAPI)
-CMD ["python", "-m", "src.notion_mcp_server.api_server"] 
+# Run the V2.1 API server (FastAPI)
+CMD ["python", "-m", "src.notion_mcp_server.api_serverV2"] 

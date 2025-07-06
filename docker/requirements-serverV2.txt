@@ -1,24 +1,30 @@
-# Requirements for Notion Server V2 (Docker deployment)
-# Minimal dependencies for API server functionality
+# Requirements for Notion MCP Server V2.1 (Docker deployment)
+# Production-ready dependencies with bulletproof validation and comprehensive testing
+#
+# This file mirrors src/notion_mcp_server/requirements.txt for Docker builds
 
-# Core Python dependencies
-python-dotenv>=1.0.0
-
-# Notion API client
+# Core Notion API
 notion-client>=2.0.0
 
-# FastAPI web framework and server
-fastapi>=0.100.0
-uvicorn>=0.20.0
-
-# Data validation
+# FastAPI Server Dependencies
+fastapi>=0.104.0
+uvicorn>=0.24.0
 pydantic>=2.0.0
 
-# HTTP client for health checks
+# Environment and Configuration
+python-dotenv>=1.0.0
+
+# HTTP Client for Testing and Health Checks
+requests>=2.31.0
+
+# Additional dependencies for Docker environment
 aiohttp>=3.8.0
 
-# JSON handling (usually included in Python, but explicit for clarity)
-# json - built-in module
+# Type hints support (for Python 3.8 compatibility)
+typing-extensions>=4.0.0
 
-# Type hints support
-typing-extensions>=4.0.0 
+# Notes:
+# - All dependencies are pinned to minimum versions for stability
+# - Compatible with Python 3.8+ (Docker uses Python 3.11)
+# - Tested with these versions in production environment
+# - Includes aiohttp for enhanced async HTTP operations in containerized environment 

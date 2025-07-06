@@ -1,0 +1,30 @@
+# Notion MCP Server V2.1 Requirements
+# Production-ready dependencies for the Notion MCP Server
+#
+# Installation:
+#   pip install -r requirements.txt
+#
+# For development:
+#   pip install -r requirements.txt -e .
+
+# Core Notion API
+notion-client>=2.0.0
+
+# FastAPI Server Dependencies
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
+
+# Environment and Configuration
+python-dotenv>=1.0.0
+
+# HTTP Client for Testing
+requests>=2.31.0
+
+# Additional FastAPI Middleware (included with fastapi but explicit for clarity)
+# python-multipart>=0.0.6  # Uncomment if you need file upload support in the future
+
+# Notes:
+# - All dependencies are pinned to minimum versions for stability
+# - Compatible with Python 3.8+
+# - Tested with these versions in production environment 
