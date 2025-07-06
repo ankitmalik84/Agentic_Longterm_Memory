@@ -12,13 +12,15 @@ python-dotenv==1.1.0
 PyYAML==6.0.2
 tiktoken==0.9.0
 typing_extensions==4.13.0
-langchain==0.3.20
-langgraph==0.3.5
+langchain
+langgraph
 langmem==0.0.16
 ipykernel==6.29.5
 SQLAlchemy
 langchain_community
+langsmith
 aiohttp
+colorama  # For terminal interface colors
 
 # Vector Database (may require C++ compiler on Windows)
 # If installation fails, run: python install.py
