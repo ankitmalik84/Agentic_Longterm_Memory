@@ -14,6 +14,7 @@ tiktoken==0.9.0
 typing_extensions==4.13.0
 langchain
 langgraph
+langchain-openai
 langmem==0.0.16
 ipykernel==6.29.5
 SQLAlchemy

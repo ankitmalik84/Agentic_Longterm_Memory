@@ -7,5 +7,6 @@ using state management and node-based workflow execution.
 
 from .agentic_chatbot import AgenticChatbot
 from .agent_state import AgentState
+from .graph import ChatState, create_chat_graph
 
-__all__ = ["AgenticChatbot", "AgentState"] 
+__all__ = ["AgenticChatbot", "AgentState", "ChatState", "create_chat_graph"] 

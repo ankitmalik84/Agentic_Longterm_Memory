@@ -1,10 +1,11 @@
 import os
 import uuid
 import json
-from typing import Dict, Any, TypedDict, Annotated
+from typing import Dict, Any
 from traceback import format_exc
 from openai import OpenAI
-from langgraph.graph import StateGraph, END, add_messages
+# External LangGraph symbols are now consumed inside the dedicated graph builder
+# module located at `src/graph.py`, so we no longer need to import them here.
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import AIMessage, HumanMessage
 from langsmith import Client
@@ -23,22 +24,12 @@ from utils.vector_db_manager import VectorDBManager
 
 from agent_state import AgentState
 from config import config
+from .graph import ChatState, create_chat_graph
 
 # Initialize LangSmith client
 langsmith_client = Client(**config.get_langsmith_config())
 
-class ChatState(TypedDict):
-    messages: Annotated[list, add_messages]
-    user_id: str
-    session_id: str
-    function_call_count: int
-    function_call_state: str | None
-    function_call_result: str | None
-    function_name: str | None
-    function_args: Dict | None
-    chat_state: str
-    error_message: str | None
-    function_call_result_section: str
+# `ChatState` now lives in `graph.py` and is imported above.
 
 class AgenticChatbot:
     """
@@ -86,47 +77,16 @@ class AgenticChatbot:
         # Initialize memory checkpointing
         self.memory = MemorySaver()
 
-        # Initialize the LangGraph
-        self.graph = self._create_graph()
-
-    def _create_graph(self) -> StateGraph:
-        """
-        Creates the LangGraph workflow with nodes and edges.
-        """
-        # Create the state graph
-        workflow = StateGraph(ChatState)
-
-        # Add nodes
-        workflow.add_node("initialize_conversation", self._initialize_conversation)
-        workflow.add_node("generate_response", self._generate_response)
-        workflow.add_node("execute_function", self._execute_function)
-        workflow.add_node("finalize_response", self._finalize_response)
-
-        # Set entry point
-        workflow.set_entry_point("initialize_conversation")
-
-        # Add edges
-        workflow.add_edge("initialize_conversation", "generate_response")
-        workflow.add_conditional_edges(
-            "generate_response",
-            self._should_call_function,
-            {
-                "function_call": "execute_function",
-                "finalize": "finalize_response"
-            }
+        # Build the LangGraph using the shared factory
+        self.graph = create_chat_graph(
+            memory=self.memory,
+            initialize_fn=self._initialize_conversation,
+            agent_fn=self._generate_response,
+            finalize_fn=self._finalize_response,
+            tools=self.agent_functions,
         )
-        workflow.add_conditional_edges(
-            "execute_function",
-            self._should_continue_conversation,
-            {
-                "continue": "generate_response",
-                "finalize": "finalize_response"
-            }
-        )
-        workflow.add_edge("finalize_response", END)
 
-        # Compile the graph with SQLite checkpointing
-        return workflow.compile(checkpointer=self.memory)
+    # The `_create_graph` helper has been relocated to `src/graph.py`.
 
     def _initialize_conversation(self, state: ChatState) -> Dict[str, Any]:
         """
