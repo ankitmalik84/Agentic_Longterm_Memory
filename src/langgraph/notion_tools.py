@@ -1,104 +1,41 @@
 from langchain.tools import tool
-from typing import Dict, Any, TypedDict, List, Optional, Literal
 import requests
 from datetime import datetime
+import json
+from typing import List, Optional
 
-class NotionSearchResult(TypedDict):
-    id: str
-    object: str
-    created_time: str
-    last_edited_time: str
-    url: str
-    title: str
+from .notion_types import (
+    # Literal types
+    NotionContentType,
+    AnalyticsType,
+    BulkOperationType,
+    AgentActionType,
+    
+    # Search types
+    NotionSearchResponse,
+    
+    # Page types
+    NotionPageResponse,
+    
+    # Create page types
+    NotionCreatePageResponse,
+    
+    # Content addition types
+    NotionAddContentResponse,
+    
+    # Analytics types
+    NotionAnalyticsResponse,
 
-class NotionSearchResponse(TypedDict):
-    success: bool
-    data: Dict[str, Any]
-    message: str
-    timestamp: str
-
-class NotionPageContent(TypedDict):
-    id: str
-    type: str
-    created_time: str
-    last_edited_time: str
-    text: str
-    has_children: bool
-
-class NotionPageProperties(TypedDict):
-    title: Dict[str, Any]  # Complex nested structure for title
-
-class NotionPageData(TypedDict):
-    id: str
-    title: str
-    created_time: str
-    last_edited_time: str
-    url: str
-    properties: NotionPageProperties
-    content: List[NotionPageContent]
-
-class NotionPageResponse(TypedDict):
-    success: bool
-    data: NotionPageData
-    message: str
-    timestamp: str
-
-class NotionCreatePageData(TypedDict):
-    id: str
-    title: str
-    url: str
-    created_time: str
-    parent_id: str
-    content_blocks_created: int
-
-class NotionCreatePageResponse(TypedDict):
-    success: bool
-    data: NotionCreatePageData
-    message: str
-    timestamp: str
-
-# Define valid content types
-NotionContentType = Literal[
-    "paragraph",
-    "heading_1",
-    "heading_2",
-    "heading_3",
-    "bulleted_list_item",
-    "to_do",
-    "bookmark",
-    "link_to_page"
-]
-
-class NotionAddContentData(TypedDict):
-    page_id: str
-    content_type: str
-    blocks_added: int
-    block_ids: List[str]
-
-class NotionAddContentResponse(TypedDict):
-    success: bool
-    data: NotionAddContentData
-    message: str
-    timestamp: str
-
-class NotionContentItem(TypedDict, total=False):
-    content_type: NotionContentType
-    content: str
-    checked: bool  # Optional for to_do items
-    url: str  # Optional for bookmark and link_to_page
-    page_reference: str  # Optional for link_to_page
-
-class NotionBulkAddContentData(TypedDict):
-    page_id: str
-    items_processed: int
-    blocks_added: int
-    block_ids: List[str]
-
-class NotionBulkAddContentResponse(TypedDict):
-    success: bool
-    data: NotionBulkAddContentData
-    message: str
-    timestamp: str
+    # Bulk operation types
+    NotionContentItem,
+    NotionBulkAddContentResponse,
+    NotionBulkResponse,
+    BulkOperationQuery,
+    
+    # Agent query types
+    AgentQueryParameters,
+    AgentQueryResponse
+)
 
 @tool
 def search_notion(query: str, page_size: int = 10) -> NotionSearchResponse:
@@ -488,22 +425,264 @@ def bulk_add_content_to_notion_page(
         }
 
 @tool
-def get_notion_analytics():
-    """Retrieves analytics data from Notion. Corresponds to /api/analytics."""
-    print("--- Calling Notion API: /api/analytics ---")
-    return {"status": "success", "page_views": 100, "unique_visitors": 50}
+def get_notion_analytics(analytics_type: AnalyticsType = "workspace") -> NotionAnalyticsResponse:
+    """
+    Retrieves analytics data from Notion.
+    
+    Endpoint: POST https://notion-mcp-server-latest.onrender.com/api/analytics
+    
+    Args:
+        analytics_type (str, optional): Type of analytics to retrieve. One of:
+            - workspace: Workspace overview (default)
+            - content: Content analysis
+            - activity: Activity patterns
+            - database: Database analysis
+        
+    Returns:
+        NotionAnalyticsResponse: A dictionary containing:
+            - success (bool): Whether the request was successful
+            - data (NotionAnalyticsData): Contains:
+                - type (str): Type of analytics retrieved
+                - total_pages (int): Total number of pages
+                - total_databases (int): Total number of databases
+                - recent_activity_7_days (int): Activity count in last 7 days
+                - recent_pages (List[NotionRecentPage]): Recently edited pages, each with:
+                    - title (str): Page title
+                    - last_edited (str): Last edit timestamp
+                    - id (str): Page ID
+                - timestamp (str): Analytics data timestamp
+            - message (str): Human readable response message
+            - timestamp (str): Server timestamp of the response
+            
+    Example Response:
+        {
+            "success": true,
+            "data": {
+                "type": "workspace",
+                "total_pages": 9,
+                "total_databases": 0,
+                "recent_activity_7_days": 9,
+                "recent_pages": [
+                    {
+                        "title": "ai agent tutorial",
+                        "last_edited": "2025-07-07T18:26:00.000Z",
+                        "id": "22950c4e-aa2a-81f2-86e8-e80916333349"
+                    }
+                ],
+                "timestamp": "2025-07-07T18:29:54.246590"
+            },
+            "message": "Workspace analytics retrieved successfully",
+            "timestamp": "2025-07-07T17:38:50.777743"
+        }
+    """
+    print(f"--- Calling Notion API: POST /api/analytics for type: {analytics_type} ---")
+    
+    try:
+        response = requests.post(
+            "https://notion-mcp-server-latest.onrender.com/api/analytics",
+            headers={
+                "accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            json={
+                "type": analytics_type
+            },
+            timeout=10  # optional timeout
+        )
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Failed to retrieve Notion analytics: {str(e)}",
+            "data": None,
+            "timestamp": datetime.now().isoformat()
+        }
 
 @tool
-def perform_bulk_notion_operations(operations: list):
-    """Performs bulk operations in Notion. Corresponds to /api/bulk."""
-    print(f"--- Calling Notion API: /api/bulk with {len(operations)} operations ---")
-    return {"status": "success", "operations_performed": len(operations)}
+def perform_bulk_notion_operations(
+    operation: BulkOperationType,
+    query: Optional[BulkOperationQuery] = None
+) -> NotionBulkResponse:
+    """
+    Performs bulk operations in Notion.
+    
+    Endpoint: POST https://notion-mcp-server-latest.onrender.com/api/bulk
+    
+    Args:
+        operation (str): Type of bulk operation. One of:
+            - list: List pages (optimized)
+            - list_pages: List pages with block counts
+            - analyze: Analyze pages (limited)
+            - analyze_pages: Analyze pages (alt format)
+        query (dict, optional): Query parameters. Can include:
+            - limit (int): Number of pages to return
+            - include_block_counts (bool): Whether to include block counts
+            
+    Returns:
+        NotionBulkResponse: A dictionary containing:
+            - success (bool): Whether the request was successful
+            - data (NotionBulkListData): Contains:
+                - operation (str): Operation performed
+                - total (int): Total pages found
+                - returned (int): Number of pages returned
+                - pages (List[NotionPageInfo]): List of pages, each with:
+                    - id (str): Page ID
+                    - title (str): Page title
+                    - created_time (str): Creation timestamp
+                    - last_edited_time (str): Last edit timestamp
+                    - url (str): Notion page URL
+                    - block_count (Union[int, str]): Block count or "not_calculated"
+                - pagination_info (NotionPaginationInfo): Pagination details
+                - timestamp (str): Operation timestamp
+            - message (str): Human readable response message
+            - timestamp (str): Server timestamp of the response
+            
+    Example:
+        # List pages with block counts
+        query = {
+            "limit": 5,
+            "include_block_counts": True
+        }
+        response = perform_bulk_notion_operations("list_pages", query)
+        
+    Example Response:
+        {
+            "success": true,
+            "data": {
+                "operation": "list",
+                "total": 9,
+                "returned": 9,
+                "pages": [
+                    {
+                        "id": "22950c4e-aa2a-81f2-86e8-e80916333349",
+                        "title": "ai agent tutorial",
+                        "created_time": "2025-07-07T18:08:00.000Z",
+                        "last_edited_time": "2025-07-07T18:26:00.000Z",
+                        "url": "https://www.notion.so/ai-agent-tutorial-22950c4eaa2a81f286e8e80916333349",
+                        "block_count": "not_calculated"
+                    }
+                ],
+                "pagination_info": {
+                    "limit_applied": 20,
+                    "include_block_counts": false,
+                    "note": "Use query parameter to request block counts: {\"include_block_counts\": true, \"limit\": 10}"
+                },
+                "timestamp": "2025-07-07T18:35:38.561539"
+            },
+            "message": "Bulk list operation completed successfully",
+            "timestamp": "2025-07-07T17:38:50.777743"
+        }
+    """
+    print(f"--- Calling Notion API: POST /api/bulk for operation: {operation} ---")
+    
+    try:
+        response = requests.post(
+            "https://notion-mcp-server-latest.onrender.com/api/bulk",
+            headers={
+                "accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            json={
+                "operation": operation,
+                "query": json.dumps(query) if query else ""
+            },
+            timeout=10  # optional timeout
+        )
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Failed to perform bulk operation: {str(e)}",
+            "data": None,
+            "timestamp": datetime.now().isoformat()
+        }
 
 @tool
-def query_notion_agent_api(query: str):
-    """Queries the Notion agent API. Corresponds to /api/agent/query."""
-    print(f"--- Calling Notion API: /api/agent/query with query: {query} ---")
-    return {"status": "success", "response": f"Agent response to '{query}'"}
+def query_notion_agent_api(
+    action: AgentActionType,
+    parameters: AgentQueryParameters
+) -> AgentQueryResponse:
+    """
+    Queries the Notion agent API with various actions.
+    
+    Endpoint: POST https://notion-mcp-server-latest.onrender.com/api/agent/query
+    
+    Args:
+        action (str): The action to perform. One of:
+            - search: Search pages
+            - read_page: Read a specific page
+            - create_page: Create a new page
+            - add_content: Add content to a page
+            - bulk_add_content: Add multiple content blocks
+            - analytics: Get analytics data
+            - bulk_operations: Perform bulk operations
+        parameters (dict): Parameters for the action. Examples:
+            - For search: {"query": "test", "page_size": 5}
+            - For analytics: {"type": "workspace"}
+            - For bulk_operations: {
+                "operation": "list",
+                "query": {"limit": 5, "include_block_counts": false}
+              }
+            
+    Returns:
+        AgentQueryResponse: A dictionary containing:
+            - success (bool): Whether the request was successful
+            - data (dict): Response data (varies by action)
+            - message (str): Human readable response message
+            - timestamp (str): Server timestamp of the response
+            
+    Example:
+        # Search query
+        response = query_notion_agent_api(
+            action="search",
+            parameters={"query": "test", "page_size": 5}
+        )
+        
+        # Analytics query
+        response = query_notion_agent_api(
+            action="analytics",
+            parameters={"type": "workspace"}
+        )
+        
+        # Bulk operations query
+        response = query_notion_agent_api(
+            action="bulk_operations",
+            parameters={
+                "operation": "list",
+                "query": {"limit": 5, "include_block_counts": False}
+            }
+        )
+    """
+    print(f"--- Calling Notion API: POST /api/agent/query for action: {action} ---")
+    
+    try:
+        # If parameters contain a 'query' field that's a dict, convert it to JSON string
+        if action == "bulk_operations" and isinstance(parameters.get("query"), dict):
+            parameters = {**parameters, "query": json.dumps(parameters["query"])}
+            
+        response = requests.post(
+            "https://notion-mcp-server-latest.onrender.com/api/agent/query",
+            headers={
+                "accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            json={
+                "action": action,
+                "parameters": parameters
+            },
+            timeout=10  # optional timeout
+        )
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Failed to query Notion agent: {str(e)}",
+            "data": None,
+            "timestamp": datetime.now().isoformat()
+        }
 
 # List of all Notion tools for easy import
 notion_tools = [
