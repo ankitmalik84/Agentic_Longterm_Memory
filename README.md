@@ -1,5 +1,6 @@
 # 🧠 Agentic Long-Term Memory with Notion Integration
 
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/ankitmalik84/Agentic_Longterm_Memory)](https://archestra.ai/mcp-catalog/ankitmalik84__agentic_longterm_memory)
 This project explores the concept of long-term memory in AI agents and demonstrates how to build sophisticated agentic memory systems using various approaches and tools. **Now featuring complete Notion workspace integration and MCP (Model Context Protocol) implementation!**
 
 Feel free to ⭐️ the repo if it helps you understand long-term memory for agents!
